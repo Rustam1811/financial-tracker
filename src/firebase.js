@@ -2,9 +2,9 @@ import { initializeApp } from 'firebase/app';
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAFxUGAgVpP6b_99Wt1MuzwXqs6fqUblss",
-  authDomain: "financial-tracker-d3673.firebaseapp.com",
-  projectId: "financial-tracker-d3673",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
 
 };
 
