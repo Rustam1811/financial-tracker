@@ -3,8 +3,15 @@
     <Navbar />
     <h1 class="title">Личный Финансовый Трекер</h1>
     <TransactionForm @transaction-added="refreshTransactions" />
-    <TransactionList @transaction-updated="refreshTransactions" @transaction-deleted="refreshTransactions" />
+    <TransactionList
+      @transaction-updated="refreshTransactions"
+      @transaction-deleted="refreshTransactions"
+    />
     <ExpensesChart :transactions="transactions" />
+    <div class="settings-section">
+      <h2>Настройки категорий</h2>
+      <CategorySettings />
+    </div>
   </div>
 </template>
 
@@ -15,9 +22,16 @@ import Navbar from '../components/Navbar.vue';
 import TransactionForm from '../components/Transactions/TransactionForm.vue';
 import TransactionList from '../components/Transactions/TransactionList.vue';
 import ExpensesChart from '../components/Charts/ExpensesChart.vue';
+import CategorySettings from '../components/Transactions/CategorySettings.vue';
 
 export default {
-  components: { Navbar, TransactionForm, TransactionList, ExpensesChart },
+  components: {
+    Navbar,
+    TransactionForm,
+    TransactionList,
+    ExpensesChart,
+    CategorySettings,
+  },
   setup() {
     const transactionsStore = useTransactionsStore();
 
@@ -40,19 +54,26 @@ export default {
 <style scoped>
 .home-container {
   max-width: 800px;
-  margin: 20px auto;
+  margin: 30px auto;
   padding: 20px;
-  background: #fff;
+  background: #fdfdfd;
   border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
   text-align: center;
+  font-family: 'Roboto', sans-serif;
 }
 
 .title {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 700;
   color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.settings-section {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #eee;
 }
 
 @media (max-width: 768px) {

@@ -1,16 +1,17 @@
 <template>
-  <div>
-    <h3>График расходов и доходов</h3>
+  <div class="chart-container">
+    <h3>Разбивка расходов по категориям</h3>
     <button @click="toggleChartType" class="toggle-btn">
-      Переключить график
+      Переключить график ({{ chartType === 'bar' ? 'Круговой' : 'Столбчатый' }})
     </button>
     <canvas ref="chartCanvas"></canvas>
   </div>
 </template>
 
 <script>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { Chart, registerables } from 'chart.js';
+import { useTransactionsStore } from '../../stores/transactions';
 
 Chart.register(...registerables);
 
@@ -19,104 +20,123 @@ export default {
     transactions: Array,
   },
   setup(props) {
+    const transactionsStore = useTransactionsStore();
     const chartCanvas = ref(null);
     let chartInstance = null;
-    const chartType = ref('bar'); 
+    const chartType = ref('bar'); // можно переключать между bar и pie
 
+    // Функция для группировки расходов по категориям
     const generateChartData = () => {
-      const expenses = props.transactions.filter(t => t.type === 'expense');
-      const incomes = props.transactions.filter(t => t.type === 'income');
+      // Фильтруем только расходы
+      const expenseTransactions = props.transactions.filter(t => t.type === 'expense');
 
-      // Обработка расходов
-      const expenseCategories = expenses.reduce((acc, expense) => {
-        const date = new Date(expense.date);
-        const month = `${date.getMonth() + 1}-${date.getFullYear()}`;
-        acc[month] = (acc[month] || 0) + expense.amount;
+      // Группируем по категории
+      const groups = expenseTransactions.reduce((acc, t) => {
+        if (!acc[t.category]) {
+          acc[t.category] = 0;
+        }
+        acc[t.category] += t.amount;
         return acc;
       }, {});
 
-      // Обработка доходов
-      const incomeCategories = incomes.reduce((acc, income) => {
-        const date = new Date(income.date);
-        const month = `${date.getMonth() + 1}-${date.getFullYear()}`;
-        acc[month] = (acc[month] || 0) + income.amount;
-        return acc;
-      }, {});
+      // Формируем метки, данные и цвета
+      const labels = [];
+      const data = [];
+      const backgroundColors = [];
+
+      // Для удобства можно задать отображаемые названия
+      const categoryNames = {
+        restaurant: 'Ресторан',
+        transport: 'Транспорт',
+        repair: 'Ремонт',
+        groceries: 'Продукты'
+      };
+
+      Object.keys(groups).forEach(category => {
+        labels.push(categoryNames[category] || category);
+        data.push(groups[category]);
+        // Получаем цвет из настроек. Если не задан – используем серый
+        const setting = transactionsStore.categorySettings[category];
+        backgroundColors.push(setting ? setting.color : '#ccc');
+      });
 
       return {
-        labels: [...new Set([...Object.keys(expenseCategories), ...Object.keys(incomeCategories)])],
+        labels,
         datasets: [
           {
-            label: 'Расходы',
-            data: Object.keys(expenseCategories).map(month => expenseCategories[month] || 0),
-            backgroundColor: 'rgba(255, 99, 132, 0.5)',
-          },
-          {
-            label: 'Доходы',
-            data: Object.keys(incomeCategories).map(month => incomeCategories[month] || 0),
-            backgroundColor: '#28a745',
+            label: 'Расходы по категориям',
+            data,
+            backgroundColor: backgroundColors,
           },
         ],
       };
     };
 
     const renderChart = () => {
-      const data = generateChartData();
       if (chartInstance) {
-        chartInstance.data = data;
-        chartInstance.type = chartType.value; 
-        chartInstance.update();
-      } else {
-        chartInstance = new Chart(chartCanvas.value, {
-          type: chartType.value,
-          data,
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                position: 'top',
-              },
-              title: {
-                display: true,
-                text: 'Доходы и Расходы по месяцам',
-              },
+        chartInstance.destroy();
+      }
+      chartInstance = new Chart(chartCanvas.value, {
+        type: chartType.value,
+        data: generateChartData(),
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: {
+              display: true,
+              text: chartType.value === 'bar'
+                ? 'Расходы по категориям (Столбчатый график)'
+                : 'Расходы по категориям (Круговая диаграмма)',
+              font: { size: 18 },
             },
           },
-        });
-      }
+          scales: chartType.value === 'bar' ? {
+            y: { beginAtZero: true }
+          } : {}
+        },
+      });
     };
 
     const toggleChartType = () => {
-      chartType.value = chartType.value === 'bar' ? 'pie' : 'bar'; 
+      chartType.value = chartType.value === 'bar' ? 'pie' : 'bar';
       renderChart();
     };
 
-    onMounted(() => {
-      renderChart();
-    });
+    onMounted(renderChart);
+    watch(() => props.transactions, renderChart, { deep: true });
 
-    watch(
-      () => props.transactions,
-      () => {
-        renderChart();
-      },
-      { deep: true }
-    );
-
-    return { chartCanvas, toggleChartType };
+    return { chartCanvas, toggleChartType, chartType };
   },
 };
 </script>
 
 <style scoped>
+.chart-container {
+  background: #f7f9fc;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+h3 {
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+  margin-bottom: 10px;
+}
+
 .toggle-btn {
-  margin: 10px 0;
-  padding: 8px 16px;
+  margin-bottom: 15px;
+  padding: 10px 20px;
   background-color: #007bff;
-  color: white;
+  color: #fff;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background 0.3s ease;
 }
 
 .toggle-btn:hover {

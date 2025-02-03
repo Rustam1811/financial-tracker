@@ -1,17 +1,20 @@
 <template>
   <li class="transaction-item">
     <div class="transaction-info">
-      <span class="transaction-description">{{ transaction.description }}</span>
+      <span class="transaction-description">
+        {{ transaction.description }} ({{ transaction.category }})
+      </span>
       <span class="transaction-date">{{ formattedDate }}</span>
     </div>
     <div class="transaction-actions">
-      <span :class="amountClass">{{ transaction.amount }} {{ transaction.currency }}</span>
-      <button @click="toggleEdit" class="edit-button">
+      <span :style="{ color: categoryColor }" class="transaction-amount">
+        {{ transaction.amount }} {{ transaction.currency }}
+      </span>
+      <button @click="toggleEdit" class="action-btn edit-btn">
         {{ editMode ? 'Сохранить' : 'Редактировать' }}
       </button>
-      <button @click="deleteTrans" class="delete-button">Удалить</button>
+      <button @click="deleteTrans" class="action-btn delete-btn">Удалить</button>
     </div>
-    
     <div v-if="editMode" class="edit-form">
       <input v-model="editedDescription" type="text" />
       <input v-model.number="editedAmount" type="number" />
@@ -22,7 +25,10 @@
       <select v-model="editedCurrency">
         <option v-for="(rate, code) in currencies" :key="code" :value="code">{{ code }}</option>
       </select>
-      <button @click="saveEdit" class="save-button">Сохранить</button>
+      <button @click="saveEdit" class="save-btn">Сохранить</button>
+    </div>
+    <div v-if="transaction.goalAmount && transaction.amount >= transaction.goalAmount" class="goal-notice">
+      <p>Цель достигнута! Ваши накопления на путешествие почти завершены!</p>
     </div>
   </li>
 </template>
@@ -42,6 +48,7 @@ export default {
     const editedAmount = ref(props.transaction.amount);
     const editedType = ref(props.transaction.type);
     const editedCurrency = ref(props.transaction.currency);
+    const editedCategory = ref(props.transaction.category);
 
     const transactionsStore = useTransactionsStore();
     const currencies = computed(() => transactionsStore.currencies);
@@ -51,8 +58,9 @@ export default {
       return date.toLocaleDateString();
     });
 
-    const amountClass = computed(() => {
-      return props.transaction.type === 'income' ? 'income-text' : 'expense-text';
+    const categoryColor = computed(() => {
+      const setting = transactionsStore.categorySettings[props.transaction.category];
+      return setting ? setting.color : '#000';
     });
 
     const saveEdit = () => {
@@ -62,6 +70,7 @@ export default {
         amount: editedAmount.value,
         type: editedType.value,
         currency: editedCurrency.value,
+        category: editedCategory.value,
       };
       transactionsStore.updateTransaction(updatedTransaction);
       editMode.value = false;
@@ -83,9 +92,10 @@ export default {
       editedAmount,
       editedType,
       editedCurrency,
+      editedCategory,
       currencies,
       formattedDate,
-      amountClass,
+      categoryColor,
       saveEdit,
       deleteTrans,
       toggleEdit,
@@ -96,100 +106,97 @@ export default {
 
 <style scoped>
 .transaction-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   background: #fff;
-  padding: 10px;
-  margin-bottom: 8px;
-  border-radius: 5px;
-  border-left: 4px solid #28a745;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  font-family: 'Roboto', sans-serif;
+  transition: transform 0.2s ease;
 }
-
-.transaction-item.expense {
-  border-left-color: #dc3545;
+.transaction-item:hover {
+  transform: translateY(-2px);
 }
-
 .transaction-info {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
-
 .transaction-description {
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
 }
-
 .transaction-date {
-  color: #666;
-  font-size: 14px;
+  font-size: 13px;
+  color: #777;
 }
-
 .transaction-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
-.edit-button,
-.delete-button,
-.save-button {
-  padding: 5px 10px;
+.transaction-amount {
+  font-size: 18px; /* увеличенный размер, чтобы соответствовать форме */
+  font-weight: bold;
+}
+.action-btn {
+  padding: 6px 12px;
   border: none;
+  border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.edit-btn {
+  background-color: #ffc107;
+  color: #fff;
+}
+.edit-btn:hover {
+  background-color: #e0a800;
+}
+.delete-btn {
+  background-color: #dc3545;
+  color: #fff;
+}
+.delete-btn:hover {
+  background-color: #c82333;
+}
+.edit-form {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.edit-form input,
+.edit-form select {
+  padding: 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
+}
+.save-btn {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
+  transition: background 0.3s ease;
 }
-
-.edit-button {
-  background-color: #f0ad4e;
-  color: white;
+.save-btn:hover {
+  background-color: #218838;
 }
-
-.edit-button:hover {
-  background-color: #ec971f;
-}
-
-.delete-button {
-  background-color: #d9534f;
-  color: white;
-}
-
-.delete-button:hover {
-  background-color: #c9302c;
-}
-
-.save-button {
-  background-color: #5cb85c;
-  color: white;
-}
-
-.save-button:hover {
-  background-color: #4cae4c;
-}
-
-.income-text {
-  color: #28a745;
-  font-weight: bold;
-}
-
-.expense-text {
-  color: #dc3545;
-  font-weight: bold;
-}
-
-.edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+.goal-notice {
   margin-top: 10px;
-}
-
-input,
-select {
-  padding: 8px;
-  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #d4edda;
+  border-left: 4px solid #28a745;
   border-radius: 4px;
   font-size: 14px;
+  color: #155724;
 }
 </style>
