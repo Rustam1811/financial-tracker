@@ -106,7 +106,7 @@ export default {
 .transaction-form {
   background: #ffffff;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
 }

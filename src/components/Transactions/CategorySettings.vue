@@ -58,6 +58,8 @@
           transport: 'Транспорт',
           repair: 'Ремонт',
           groceries: 'Продукты',
+          salary: 'Зарплата'
+
         };
         return map[name] || name;
       };

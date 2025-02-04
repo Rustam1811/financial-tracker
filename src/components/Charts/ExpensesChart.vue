@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { Chart, registerables } from 'chart.js';
 import { useTransactionsStore } from '../../stores/transactions';
 
@@ -25,7 +25,7 @@ export default {
     let chartInstance = null;
     const chartType = ref('bar'); // можно переключать между bar и pie
 
-    // Функция для группировки расходов по категориям
+    // Данные для столбчатого графика (только расходы по категориям)
     const generateChartData = () => {
       // Фильтруем только расходы
       const expenseTransactions = props.transactions.filter(t => t.type === 'expense');
@@ -39,12 +39,11 @@ export default {
         return acc;
       }, {});
 
-      // Формируем метки, данные и цвета
       const labels = [];
       const data = [];
       const backgroundColors = [];
 
-      // Для удобства можно задать отображаемые названия
+      // Отображаемые названия категорий
       const categoryNames = {
         restaurant: 'Ресторан',
         transport: 'Транспорт',
@@ -55,7 +54,6 @@ export default {
       Object.keys(groups).forEach(category => {
         labels.push(categoryNames[category] || category);
         data.push(groups[category]);
-        // Получаем цвет из настроек. Если не задан – используем серый
         const setting = transactionsStore.categorySettings[category];
         backgroundColors.push(setting ? setting.color : '#ccc');
       });
@@ -72,30 +70,104 @@ export default {
       };
     };
 
+    // Данные для круговой диаграммы: весь круг соответствует общему доходу.
+    // Сегменты представляют собой расходы по категориям, а остаток — неиспользованные средства.
+    const generatePieChartData = () => {
+      // Выбираем транзакции дохода и считаем общий доход
+      const incomeTransactions = props.transactions.filter(t => t.type === 'income');
+      const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+      // Группируем расходы по категориям
+      const expenseTransactions = props.transactions.filter(t => t.type === 'expense');
+      const groups = expenseTransactions.reduce((acc, t) => {
+        if (!acc[t.category]) {
+          acc[t.category] = 0;
+        }
+        acc[t.category] += t.amount;
+        return acc;
+      }, {});
+
+      let totalExpenses = 0;
+      const labels = [];
+      const data = [];
+      const backgroundColors = [];
+
+      // Отображаемые названия категорий
+      const categoryNames = {
+        restaurant: 'Ресторан',
+        transport: 'Транспорт',
+        repair: 'Ремонт',
+        groceries: 'Продукты'
+      };
+
+      Object.keys(groups).forEach(category => {
+        labels.push(categoryNames[category] || category);
+        data.push(groups[category]);
+        totalExpenses += groups[category];
+        const setting = transactionsStore.categorySettings[category];
+        backgroundColors.push(setting ? setting.color : '#ccc');
+      });
+
+      // Остаток = доход - сумма расходов (если есть неиспользованные средства)
+      const remainder = totalIncome - totalExpenses;
+      if (remainder > 0) {
+        labels.push('Остаток');
+        data.push(remainder);
+        backgroundColors.push('#e0e0e0'); // светло-серый для остатка
+      }
+
+      return {
+        labels,
+        datasets: [
+          {
+            data,
+            backgroundColor: backgroundColors,
+          },
+        ],
+      };
+    };
+
     const renderChart = () => {
       if (chartInstance) {
         chartInstance.destroy();
       }
-      chartInstance = new Chart(chartCanvas.value, {
-        type: chartType.value,
-        data: generateChartData(),
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'top' },
-            title: {
-              display: true,
-              text: chartType.value === 'bar'
-                ? 'Расходы по категориям (Столбчатый график)'
-                : 'Расходы по категориям (Круговая диаграмма)',
-              font: { size: 18 },
+
+      if (chartType.value === 'pie') {
+        chartInstance = new Chart(chartCanvas.value, {
+          type: 'pie',
+          data: generatePieChartData(),
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'top' },
+              title: {
+                display: true,
+                text: 'Доход с распределением расходов (Круговая диаграмма)',
+                font: { size: 18 },
+              },
             },
           },
-          scales: chartType.value === 'bar' ? {
-            y: { beginAtZero: true }
-          } : {}
-        },
-      });
+        });
+      } else {
+        chartInstance = new Chart(chartCanvas.value, {
+          type: 'bar',
+          data: generateChartData(),
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'top' },
+              title: {
+                display: true,
+                text: 'Расходы по категориям (Столбчатый график)',
+                font: { size: 18 },
+              },
+            },
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        });
+      }
     };
 
     const toggleChartType = () => {
