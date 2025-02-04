@@ -52,13 +52,13 @@
       };
   
       const formatCategoryName = (name) => {
-        // Преобразуем имя категории (например, "restaurant" -> "Ресторан")
         const map = {
           restaurant: 'Ресторан',
           transport: 'Транспорт',
           repair: 'Ремонт',
           groceries: 'Продукты',
-          salary: 'Зарплата'
+          salary: 'Зарплата',
+
 
         };
         return map[name] || name;

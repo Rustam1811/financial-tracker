@@ -3,7 +3,6 @@
       <div class="modal-content">
         <h2>Семейный бюджет</h2>
         
-        <!-- Раздел участников -->
         <div class="users-section">
           <h3>Участники</h3>
           <ul>
@@ -34,8 +33,7 @@
             Максимальное количество участников достигнуто.
           </p>
         </div>
-        
-        <!-- Раздел информации о бюджете -->
+
         <div class="budget-info">
           <h3>Общий семейный бюджет</h3>
           <p>
@@ -55,7 +53,6 @@
     name: "FamilyBudget",
     data() {
       return {
-        // Изначальная структура семейного бюджета; данные будут подгружены с сервера
         familyBudget: {
           participants: [],
           totalBudget: 0,
@@ -107,7 +104,6 @@
     },
     mounted() {
       this.fetchFamilyBudget();
-      // Периодическая синхронизация каждые 5 секунд
       this.pollingInterval = setInterval(() => {
         this.fetchFamilyBudget();
       }, 5000);
@@ -119,7 +115,7 @@
   </script>
   
   <style scoped>
-  /* Стили для модального окна */
+ 
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -141,7 +137,6 @@
     position: relative;
   }
   
-  /* Стили для раздела участников */
   .users-section h3 {
     margin-bottom: 15px;
     font-size: 20px;
@@ -210,7 +205,6 @@
     color: #555;
   }
   
-  /* Стили для информации о бюджете */
   .budget-info {
     background-color: #f9f9f9;
     padding: 15px;

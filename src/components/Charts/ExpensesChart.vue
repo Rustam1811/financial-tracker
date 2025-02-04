@@ -23,14 +23,14 @@ export default {
     const transactionsStore = useTransactionsStore();
     const chartCanvas = ref(null);
     let chartInstance = null;
-    const chartType = ref('bar'); // можно переключать между bar и pie
+    const chartType = ref('bar');
 
-    // Данные для столбчатого графика (только расходы по категориям)
+    
     const generateChartData = () => {
-      // Фильтруем только расходы
+     
       const expenseTransactions = props.transactions.filter(t => t.type === 'expense');
 
-      // Группируем по категории
+      
       const groups = expenseTransactions.reduce((acc, t) => {
         if (!acc[t.category]) {
           acc[t.category] = 0;
@@ -43,12 +43,14 @@ export default {
       const data = [];
       const backgroundColors = [];
 
-      // Отображаемые названия категорий
+      
       const categoryNames = {
         restaurant: 'Ресторан',
         transport: 'Транспорт',
         repair: 'Ремонт',
-        groceries: 'Продукты'
+        groceries: 'Продукты',
+        salary: 'Зарплата',
+        
       };
 
       Object.keys(groups).forEach(category => {
@@ -70,14 +72,9 @@ export default {
       };
     };
 
-    // Данные для круговой диаграммы: весь круг соответствует общему доходу.
-    // Сегменты представляют собой расходы по категориям, а остаток — неиспользованные средства.
     const generatePieChartData = () => {
-      // Выбираем транзакции дохода и считаем общий доход
       const incomeTransactions = props.transactions.filter(t => t.type === 'income');
       const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
-
-      // Группируем расходы по категориям
       const expenseTransactions = props.transactions.filter(t => t.type === 'expense');
       const groups = expenseTransactions.reduce((acc, t) => {
         if (!acc[t.category]) {
@@ -92,12 +89,12 @@ export default {
       const data = [];
       const backgroundColors = [];
 
-      // Отображаемые названия категорий
       const categoryNames = {
         restaurant: 'Ресторан',
         transport: 'Транспорт',
         repair: 'Ремонт',
-        groceries: 'Продукты'
+        groceries: 'Продукты',
+        salary: 'Зарплата',
       };
 
       Object.keys(groups).forEach(category => {
@@ -108,12 +105,11 @@ export default {
         backgroundColors.push(setting ? setting.color : '#ccc');
       });
 
-      // Остаток = доход - сумма расходов (если есть неиспользованные средства)
       const remainder = totalIncome - totalExpenses;
       if (remainder > 0) {
         labels.push('Остаток');
         data.push(remainder);
-        backgroundColors.push('#e0e0e0'); // светло-серый для остатка
+        backgroundColors.push('#e0e0e0'); 
       }
 
       return {

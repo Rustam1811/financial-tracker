@@ -30,6 +30,7 @@
             <option value="transport">Транспорт</option>
             <option value="repair">Ремонт</option>
             <option value="groceries">Продукты</option>
+            <option value="salary">Зарплата</option>
           </select>
         </div>
         <div class="form-group fixed checkbox-container">
@@ -87,7 +88,7 @@ export default {
       transactionsStore.addTransaction(newTransaction);
       emit('transaction-added');
 
-      // Сброс формы
+      
       description.value = '';
       amount.value = 0;
       type.value = 'expense';
@@ -118,7 +119,7 @@ h3 {
   font-size: 20px;
 }
 
-/* Грид для выравнивания полей ввода */
+
 .form-row {
   display: flex;
   flex-wrap: wrap;
@@ -126,7 +127,7 @@ h3 {
   margin-bottom: 15px;
 }
 
-/* Фиксированная ширина и высота для групп ввода */
+
 .form-group.fixed {
   flex: 1;
   min-width: 140px;
@@ -152,7 +153,7 @@ select:focus {
   border-color: #007bff;
 }
 
-/* Для чекбокса */
+
 .checkbox-container {
   display: flex;
   align-items: center;

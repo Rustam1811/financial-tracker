@@ -3,7 +3,6 @@
     <Navbar />
     <h1 class="title">Личный Финансовый Трекер</h1>
     
-    <!-- Остальной контент личного бюджета -->
     <TransactionForm @transaction-added="refreshTransactions" />
     <TransactionList
       @transaction-updated="refreshTransactions"
@@ -11,17 +10,17 @@
     />
     <ExpensesChart :transactions="transactions" />
     
-    <!-- Кнопка для открытия семейного бюджета -->
+    
     <div class="family-budget-btn-container">
       <button class="family-budget-btn" @click="openFamilyBudget">
         Семейный бюджет
       </button>
     </div>
     
-    <!-- Модальное окно семейного бюджета -->
+    
     <FamilyBudget v-if="showFamilyBudget" @close="closeFamilyBudget" />
     
-    <!-- Раздел настроек (если требуется) -->
+    
     <div class="settings-section">
       <h2>Настройки категорий</h2>
       <CategorySettings />
@@ -37,7 +36,7 @@ import TransactionForm from '../components/Transactions/TransactionForm.vue';
 import TransactionList from '../components/Transactions/TransactionList.vue';
 import ExpensesChart from '../components/Charts/ExpensesChart.vue';
 import CategorySettings from '../components/Transactions/CategorySettings.vue';
-import FamilyBudget from '../components/FamilyBudget.vue'; // новый компонент
+import FamilyBudget from '../components/FamilyBudget.vue';
 
 export default {
   components: {

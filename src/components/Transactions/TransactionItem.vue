@@ -137,7 +137,7 @@ export default {
   gap: 10px;
 }
 .transaction-amount {
-  font-size: 18px; /* увеличенный размер, чтобы соответствовать форме */
+  font-size: 18px; 
   font-weight: bold;
 }
 .action-btn {
